@@ -1,0 +1,252 @@
+#!/usr/bin/env node
+
+/**
+ * BotIndex MCP Server
+ *
+ * Exposes BotIndex signal intelligence API as MCP tools.
+ * All paid endpoints require x402 payment (USDC on Base).
+ * Discovery endpoint is free.
+ *
+ * Usage:
+ *   npx @cyberweasel/botindex-mcp
+ *
+ * Environment:
+ *   BOTINDEX_URL — API base URL (default: https://king-backend.fly.dev/api/botindex/v1)
+ */
+
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
+
+const BASE_URL = process.env.BOTINDEX_URL || 'https://king-backend.fly.dev/api/botindex/v1';
+
+async function fetchBotindex(path: string, params?: Record<string, string>): Promise<unknown> {
+  const url = new URL(`${BASE_URL}${path}`);
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      if (v) url.searchParams.set(k, v);
+    }
+  }
+
+  const res = await fetch(url.toString());
+
+  if (res.status === 402) {
+    const body = await res.json();
+    return {
+      x402_payment_required: true,
+      message: 'This endpoint requires x402 payment (USDC on Base). Include x402 payment header.',
+      requirements: body,
+      endpoint: path,
+      wallet: '0x7E6C8EAc1b1b8E628fa6169eEeDf3cF9638b3Cbd',
+      network: 'base',
+      sdk: 'npm install @x402/client',
+    };
+  }
+
+  if (!res.ok) {
+    return { error: true, status: res.status, message: await res.text() };
+  }
+
+  return res.json();
+}
+
+const server = new McpServer({
+  name: 'botindex',
+  version: '1.0.0',
+});
+
+// ── Free discovery ──────────────────────────────────────────────
+server.tool(
+  'botindex_discover',
+  'Get the full BotIndex API catalog — all endpoints, pricing, descriptions. FREE.',
+  {},
+  async () => {
+    const data = await fetchBotindex('/');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+// ── Sports tools ────────────────────────────────────────────────
+server.tool(
+  'botindex_sports_odds',
+  'Live sports odds snapshot (NFL, NBA, UFC, NHL). Moneyline, spread, totals with bookmaker comparisons. $0.02',
+  { sport: z.string().optional().describe('Filter by sport: nfl, nba, ufc, nhl') },
+  async ({ sport }) => {
+    const params: Record<string, string> = {};
+    if (sport) params.sport = sport;
+    const data = await fetchBotindex('/sports/odds', params);
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_sports_lines',
+  'Line movements with sharp money action flags. Identifies professional bettor market impact. $0.02',
+  {},
+  async () => {
+    const data = await fetchBotindex('/sports/lines');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_sports_props',
+  'Top prop bet movements with confidence scores. Player prop market value signals. $0.02',
+  {},
+  async () => {
+    const data = await fetchBotindex('/sports/props');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_sports_correlations',
+  'Player correlation matrix for DFS and correlated betting. Shows co-performance patterns. $0.05',
+  {},
+  async () => {
+    const data = await fetchBotindex('/sports/correlations');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_dfs_optimizer',
+  'Correlation-adjusted DFS lineup optimizer. Returns optimized lineups accounting for player correlations. $0.10',
+  {
+    budget: z.number().optional().describe('Salary cap budget'),
+    sport: z.string().optional().describe('Target sport'),
+  },
+  async ({ budget, sport }) => {
+    const params: Record<string, string> = {};
+    if (budget) params.budget = String(budget);
+    if (sport) params.sport = sport;
+    const data = await fetchBotindex('/sports/optimizer', params);
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_arb_scanner',
+  'Cross-platform prediction market and sportsbook arbitrage scanner. $0.05',
+  {},
+  async () => {
+    const data = await fetchBotindex('/sports/arb');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+// ── Crypto tools ────────────────────────────────────────────────
+server.tool(
+  'botindex_crypto_tokens',
+  'Token universe with latest price data from MemeRadar correlation engine. $0.02',
+  {},
+  async () => {
+    const data = await fetchBotindex('/crypto/tokens');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_crypto_graduating',
+  'Token graduation signals from Catapult launchpad to Hyperliquid mainnet via GradSniper. $0.02',
+  {},
+  async () => {
+    const data = await fetchBotindex('/crypto/graduating');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+// ── Solana tools ────────────────────────────────────────────────
+server.tool(
+  'botindex_solana_launches',
+  'All tracked Metaplex Genesis token launches on Solana mainnet. $0.02',
+  {},
+  async () => {
+    const data = await fetchBotindex('/solana/launches');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_solana_active',
+  'Currently active Metaplex Genesis launches on Solana (filtered by status). $0.02',
+  {},
+  async () => {
+    const data = await fetchBotindex('/solana/active');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+// ── Commerce tools ──────────────────────────────────────────────
+server.tool(
+  'botindex_commerce_compare',
+  'Compare merchant offers across agentic commerce protocols (ACP, UCP, x402). Ranked offers with trust scores, fees, checkout protocol details. Use before any purchase. $0.05',
+  {
+    q: z.string().describe('Product search query (e.g. "GPU cloud credits", "market data feed")'),
+    maxPrice: z.number().optional().describe('Maximum price filter'),
+    protocol: z.enum(['acp', 'ucp', 'x402']).optional().describe('Preferred checkout protocol'),
+    limit: z.number().optional().describe('Max results (default 10, max 50)'),
+  },
+  async ({ q, maxPrice, protocol, limit }) => {
+    const params: Record<string, string> = { q };
+    if (maxPrice) params.maxPrice = String(maxPrice);
+    if (protocol) params.protocol = protocol;
+    if (limit) params.limit = String(limit);
+    const data = await fetchBotindex('/commerce/compare', params);
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_commerce_protocols',
+  'Directory of agentic commerce protocols — ACP (OpenAI+Stripe), UCP (Google), x402 (Coinbase) with fee structures and merchant counts. $0.01',
+  {},
+  async () => {
+    const data = await fetchBotindex('/commerce/protocols');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+// ── Premium tools ───────────────────────────────────────────────
+server.tool(
+  'botindex_signals',
+  'Aggregated premium signals: correlation leaders + prediction arbitrage + market heatmap. $0.10',
+  {},
+  async () => {
+    const data = await fetchBotindex('/signals');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_agent_trace',
+  'Premium reasoning trace for a specific agent. $0.05',
+  {
+    agentId: z.enum(['spreadhunter', 'rosterradar', 'arbwatch', 'memeradar', 'botindex']).describe('Agent ID'),
+  },
+  async ({ agentId }) => {
+    const data = await fetchBotindex(`/trace/${agentId}`);
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_dashboard',
+  'Full premium dashboard — all agents, traces, correlation matrices, prediction arb, heatmaps. Most comprehensive single-call data package. $0.50',
+  {},
+  async () => {
+    const data = await fetchBotindex('/dashboard');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+// ── Start server ────────────────────────────────────────────────
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+}
+
+main().catch((err) => {
+  console.error('BotIndex MCP server error:', err);
+  process.exit(1);
+});
