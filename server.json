@@ -1,0 +1,20 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.cyberweasel777/botindex",
+  "description": "BotIndex: AI-native signal intelligence API. Sports odds, crypto correlations, token graduations, agentic commerce comparison. All x402-gated (USDC on Base). 16 tools covering sports betting, DFS optimization, arbitrage detection, meme token tracking, Solana launch monitoring, and cross-protocol commerce comparison (ACP vs UCP vs x402).",
+  "repository": {
+    "url": "https://github.com/Cyberweasel777/botindex-mcp",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@cyberweasel/botindex-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
