@@ -52,7 +52,7 @@ async function fetchBotindex(path: string, params?: Record<string, string>): Pro
 
 const server = new McpServer({
   name: 'botindex',
-  version: '1.0.0',
+  version: '1.1.0',
 });
 
 // ── Free discovery ──────────────────────────────────────────────
@@ -236,6 +236,84 @@ server.tool(
   {},
   async () => {
     const data = await fetchBotindex('/dashboard');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+// ── Zora tools ──────────────────────────────────────────────────
+server.tool(
+  'botindex_zora_trending_coins',
+  'Get trending Zora attention market coins by volume velocity. Tracks which coins are gaining attention momentum on Zora. $0.03',
+  { limit: z.number().optional().describe('Maximum results to return (default 20)') },
+  async ({ limit }) => {
+    const params: Record<string, string> = {};
+    if (limit) params.limit = String(limit);
+    const data = await fetchBotindex('/zora/trending-coins', params);
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_zora_creator_scores',
+  'Get creator performance scores on Zora. Identifies top-performing creators by attention metrics and coin success rates. $0.03',
+  { limit: z.number().optional().describe('Maximum results to return (default 20)') },
+  async ({ limit }) => {
+    const params: Record<string, string> = {};
+    if (limit) params.limit = String(limit);
+    const data = await fetchBotindex('/zora/creator-scores', params);
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_zora_attention_momentum',
+  'Get attention momentum — which Zora trends are accelerating. Early signal for emerging attention markets before they peak. $0.03',
+  { limit: z.number().optional().describe('Maximum results to return (default 20)') },
+  async ({ limit }) => {
+    const params: Record<string, string> = {};
+    if (limit) params.limit = String(limit);
+    const data = await fetchBotindex('/zora/attention-momentum', params);
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+// ── Hyperliquid tools ───────────────────────────────────────────
+server.tool(
+  'botindex_hl_funding_arb',
+  'Get funding rate arbitrage opportunities between Hyperliquid and major CEXs. Identifies cross-exchange funding rate discrepancies for delta-neutral yield. $0.05',
+  {},
+  async () => {
+    const data = await fetchBotindex('/hyperliquid/funding-arb');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_hl_correlation_matrix',
+  'Get Hyperliquid perpetual correlation matrix. Shows price correlation between perp pairs for portfolio construction and risk management. $0.05',
+  {},
+  async () => {
+    const data = await fetchBotindex('/hyperliquid/correlation-matrix');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_hl_liquidation_heatmap',
+  'Get liquidation cluster heatmap by price level. Visualizes where liquidations cluster to predict support/resistance zones and volatility spikes. $0.05',
+  {},
+  async () => {
+    const data = await fetchBotindex('/hyperliquid/liquidation-heatmap');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  },
+);
+
+server.tool(
+  'botindex_hl_coin_analytics',
+  'Get deep analytics for a specific Hyperliquid coin. Comprehensive metrics including OI, funding, volume, and liquidation history. $0.05',
+  { address: z.string().describe('Coin address or symbol (e.g., "BTC", "ETH", or contract address)') },
+  async ({ address }) => {
+    const data = await fetchBotindex(`/hyperliquid/coin-analytics?address=${encodeURIComponent(address)}`);
     return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
   },
 );

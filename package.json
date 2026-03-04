@@ -1,6 +1,6 @@
 {
   "name": "@cyberweasel/botindex-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "mcpName": "io.github.cyberweasel777/botindex",
   "description": "MCP server for BotIndex — AI-native signal intelligence API. Sports odds, crypto correlations, token graduations, agentic commerce comparison. x402-gated.",
   "main": "dist/index.js",
