@@ -1,8 +1,8 @@
 {
   "name": "botindex-mcp-server",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "mcpName": "io.github.cyberweasel777/botindex",
-  "description": "MCP server for BotIndex — AI-native signal intelligence API. Sports odds, crypto correlations, token graduations, agentic commerce comparison. x402-gated.",
+  "description": "MCP server for BotIndex — Crypto market intelligence API. Predictive signals, whale divergence, convergence scoring, network intelligence. Verifiable track record.",
   "main": "dist/index.js",
   "bin": {
     "botindex-mcp": "dist/index.js"
@@ -18,11 +18,13 @@
   "keywords": [
     "mcp",
     "botindex",
-    "x402",
-    "sports-betting",
-    "crypto",
+    "crypto-intelligence",
+    "whale-tracking",
+    "predictive-signals",
+    "market-intelligence",
     "ai-agents",
-    "agentic-commerce"
+    "defi",
+    "convergence-scoring"
   ],
   "license": "MIT",
   "dependencies": {
